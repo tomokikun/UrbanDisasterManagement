@@ -1,6 +1,14 @@
 # UrbanDisasterManagement
 This repository is for the script to calculate seismic intensity for an assignment of Urban Disaster Management.
 
+# 課題
+計測震度の算出および最大加速度、最大速度などとの対応の確認。
+
+- 気象庁の計測震度を算出し、震度階を調べる
+- 対象は、熊本地震の本震や前震で観測された地震動とする
+気象庁、防災科学技術研究所などが公開している強震動記録
+- 得られた震度階もしくは計測震度と最大加速度、最大速度などとどのような対応になっているかを確
+認をする
 
 # 各種リンク
 
