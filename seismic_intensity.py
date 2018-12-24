@@ -1,7 +1,7 @@
 
 # coding: utf-8
 
-# In[1]:
+# In[20]:
 
 
 # -*- coding: utf-8 -*-
@@ -14,14 +14,14 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 
-# In[2]:
+# In[21]:
 
 
 # データ ファイルのパス
 PATH = 'Q4149CF2.csv'
 
 
-# In[3]:
+# In[22]:
 
 
 # オリジナルの加速度を読み込む。
@@ -30,7 +30,7 @@ data = data.rename(columns={' NS': 'NS'})
 print(data.head())
 
 
-# In[4]:
+# In[23]:
 
 
 # オリジナルの加速度の波形を描画する。
@@ -49,7 +49,7 @@ ax_UD.set_title('UD')
 fig.show()
 
 
-# In[5]:
+# In[24]:
 
 
 # 1. データをフーリエ変換する。
@@ -59,10 +59,10 @@ fft_df = fft_df.rename(columns={0: 'NS', 1: 'EW', 2: 'UD'})
 fft_df.head()
 
 
-# In[6]:
+# In[25]:
 
 
-# フィルターをかける。(図3を参照)
+# 2. フィルターをかける。(図3を参照)
 def filter_1(f):
     """周期の効果を表すフィルターです。
     """
@@ -89,10 +89,10 @@ filtered_df = filter_low(filter_high(filter_1(fft_df)))
 filtered_df.head()
 
 
-# In[7]:
+# In[26]:
 
 
-# 逆フーリエ変換する。
+# 3. 逆フーリエ変換する。
 # 逆フーリエ変換すると、虚部が残る可能性があるので、np.real をかぶせる。
 ifft_df = pd.concat([pd.Series(np.real(fftpack.ifft(filtered_df[column]))) for column in filtered_df.columns], axis=1)
 
@@ -100,21 +100,62 @@ ifft_df = ifft_df.rename(columns={0: 'NS', 1: 'EW', 2: 'UD'})
 ifft_df.head(14)
 
 
-# In[23]:
+# In[31]:
 
 
-# フィルター処理済みの3成分波形をベクトル的に合成する。
+# 4. フィルター処理済みの3成分波形をベクトル的に合成する。
+
+def synthesize_vector(x, y, z):
+    return np.sqrt(x ** 2 + y ** 2 + z ** 2)
+
+a = []
+for row in ifft_df.iterrows():
+    a.append(synthesize_vector(row[1]['NS'], row[1]['EW'], row[1]['UD']))
+
+# ベクトル合成の結果
+synthesized_series = pd.Series(a)
+
+synthesized_series.head()
 
 
-# # 5. a を求める。
-
-# In[204]:
+# In[32]:
 
 
-# 6. 計測震度 I を計算する。
+# 5. a を求める。 
+def get_a(syn_data):
+    """ベクトル波形(フィルター処理済みの3成分波形をベクトル的に合成したもの)の絶対値がある値 a 以上となる時間の合計を計算したとき、
+    これがちょうど 0.3秒となるような a を求めて、その a の値を返します。
+    
+    具体的には、デジタル記録のサンプリング時間間隔 dt としたとき、 
+    ベクトル波形 p を絶対値の大きい順に並べて、 0.3 / dt 番目の値を
+    a とする。
+    
+    サンプリング レートは 100Hz なのでサンプリング間隔は 0.01 sec.
+    :param syn_data: 合成済みのデータ
+    :type syn_data: pandas.Series
+    :return: 条件を満たす a の値
+    :rypte: float
+    """
+    dt = 1 / 100
+    max_time = int(0.3 / dt)
+    
+    syn_data.sort_values(ascending=False)
+    return syn_data[max_time]
 
 
-# In[190]:
+# In[33]:
 
 
-# Iの小数第３位を四捨五入し、小数第２位を切り捨てたものを計測震度として返す。
+# 6. Iの小数第３位を四捨五入し、小数第２位を切り捨てたものを計測震度として返す。
+
+from math import floor, log, log2, log10
+
+# I を求めます.
+def calc_intensity(tomoki_result):
+    cal = lambda x: "{:.2f}".format(round(2 * x + 0.84, 2))
+    # log の底が不明なので三種類試します.
+    return cal(log(tomoki_result)), cal(log2(tomoki_result)), cal(log10(tomoki_result))
+
+print(f"a: {get_a(synthesized_series)}")
+calc_intensity(get_a(synthesized_series))
+
