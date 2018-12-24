@@ -1,37 +1,16 @@
-
-# coding: utf-8
-
-# In[20]:
-
-
 # -*- coding: utf-8 -*-
-get_ipython().run_line_magic('matplotlib', 'inline')
 import pandas as pd
 import numpy as np
 from scipy import fftpack
-
 import matplotlib.pyplot as plt
-import seaborn as sns
-
-
-# In[21]:
 
 
 # データ ファイルのパス
 PATH = 'Q4149CF2.csv'
 
-
-# In[22]:
-
-
 # オリジナルの加速度を読み込む。
 data = pd.read_csv(PATH, skiprows=6)
 data = data.rename(columns={' NS': 'NS'})
-print(data.head())
-
-
-# In[23]:
-
 
 # オリジナルの加速度の波形を描画する。
 fig, (ax_NS, ax_EW, ax_UD) = plt.subplots(ncols=3, figsize=(10,4))
@@ -45,21 +24,15 @@ ax_EW.set_title('EW')
 ax_UD.plot(data['UD'])
 ax_UD.set_title('UD')
 
-
-fig.show()
-
-
-# In[24]:
+# fig.show()
 
 
 # 1. データをフーリエ変換する。
-fft_df = pd.concat([pd.Series(fftpack.fft(data[column])) for column in data.columns], axis=1)
+fft_df = pd.concat([pd.Series(fftpack.fft(data[column]))
+                    for column in data.columns], axis=1)
 
 fft_df = fft_df.rename(columns={0: 'NS', 1: 'EW', 2: 'UD'})
 fft_df.head()
-
-
-# In[25]:
 
 
 # 2. フィルターをかける。(図3を参照)
@@ -89,9 +62,6 @@ filtered_df = filter_low(filter_high(filter_1(fft_df)))
 filtered_df.head()
 
 
-# In[26]:
-
-
 # 3. 逆フーリエ変換する。
 # 逆フーリエ変換すると、虚部が残る可能性があるので、np.real をかぶせる。
 ifft_df = pd.concat([pd.Series(np.real(fftpack.ifft(filtered_df[column]))) for column in filtered_df.columns], axis=1)
@@ -100,13 +70,11 @@ ifft_df = ifft_df.rename(columns={0: 'NS', 1: 'EW', 2: 'UD'})
 ifft_df.head(14)
 
 
-# In[31]:
-
-
 # 4. フィルター処理済みの3成分波形をベクトル的に合成する。
 
 def synthesize_vector(x, y, z):
     return np.sqrt(x ** 2 + y ** 2 + z ** 2)
+
 
 a = []
 for row in ifft_df.iterrows():
@@ -114,14 +82,11 @@ for row in ifft_df.iterrows():
 
 # ベクトル合成の結果
 synthesized_series = pd.Series(a)
-
 synthesized_series.head()
 
+# 5. a を求める。
 
-# In[32]:
 
-
-# 5. a を求める。 
 def get_a(syn_data):
     """ベクトル波形(フィルター処理済みの3成分波形をベクトル的に合成したもの)の絶対値がある値 a 以上となる時間の合計を計算したとき、
     これがちょうど 0.3秒となるような a を求めて、その a の値を返します。
@@ -142,13 +107,11 @@ def get_a(syn_data):
     syn_data.sort_values(ascending=False)
     return syn_data[max_time]
 
-
-# In[33]:
-
-
 # 6. Iの小数第３位を四捨五入し、小数第２位を切り捨てたものを計測震度として返す。
 
+
 from math import floor, log, log2, log10
+
 
 # I を求めます.
 def calc_intensity(tomoki_result):
@@ -156,6 +119,7 @@ def calc_intensity(tomoki_result):
     # log の底が不明なので三種類試します.
     return cal(log(tomoki_result)), cal(log2(tomoki_result)), cal(log10(tomoki_result))
 
+
 print(f"a: {get_a(synthesized_series)}")
-calc_intensity(get_a(synthesized_series))
+print(f"seismic_intensity: {calc_intensity(get_a(synthesized_series))}")
 
