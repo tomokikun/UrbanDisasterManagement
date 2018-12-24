@@ -18,8 +18,27 @@ This repository is for the script to calculate seismic intensity for an assignme
 
 [防災科学技術研究所「強震観測網 K-NET, KiK-net」](http://www.kyoshin.bosai.go.jp/kyoshin/ )
 
+
+# テスト
+[気象庁の計測震度の算出方法のページ](http://www.data.jma.go.jp/svd/eqev/data/kyoshin/kaisetsu/calc_sindo.htm)に掲載されている例を用いて、
+コードのテストを行った。
+この例では、[2000年10月6日に発生した鳥取県西部地震の米子市（計測震度＝5.1）](http://www.data.jma.go.jp/svd/eqev/data/kyoshin/jishin/001006_tottori-seibu/dat/AA06EA01.csv)のデータを用いている。
+
+手順 5 において、ａ＝127.85gal
+手順 6 において、I~5.1
+
+以上の2点を満たすことをテストした。
+
     
 # 使用データについて
 
 テスト データとして、[2000年10月6日に発生した鳥取県西部地震の米子市（計測震度＝5.1）](http://www.data.jma.go.jp/svd/eqev/data/kyoshin/jishin/001006_tottori-seibu/dat/AA06EA01.csv)を使用。
+
+実際の計測震度の計算用データとして、[2016年4月14日 熊本県熊本地方の地震](http://www.data.jma.go.jp/svd/eqev/data/kyoshin/jishin/1604142126_kumamoto/data/Q4149CF2.csv)を使用した。
+以下、使用した計算用データの詳細。
+
+|都道府県|観測点名|震度	|計測震度|最大加速度（gal=cm/s2）|震央距離（km)|３成分合成|南北|東西|上下|
+|-----|-----|-----|-----|-----|-----|-----|-----|-----|-----|
+|熊本県|宇城市松橋町|６弱|5.7|364.5|327.1|280.9|220.9|15.8|
+
 
